@@ -1,51 +1,64 @@
 plugins {
-    id 'com.android.library'
-    id 'kotlin-android'
-    id 'maven-publish'
+    id("com.android.library")
+    id("kotlin-android")
+    id("maven-publish")
+//    id("signing")
 }
 
-group = 'com.openreplay'
-version = '1.0'
-
 android {
-    compileSdkVersion 31
+    namespace = "com.openreplay"
+    compileSdk = 34
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 31
-        versionCode 1
-        versionName "1.0"
+        minSdk = 24
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildFeatures {
+            buildConfig = true
+        }
+        buildConfigField("String", "VERSION_NAME", "\"${project.version}\"")
+
+        aarMetadata {
+            minCompileSdk = 29
+        }
     }
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            consumerProguardFiles("consumer-rules.pro")
         }
     }
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = "1.8"
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("release") {
+            groupId = "com.openreplay"
+            artifactId = "openreplay"
+            version = "1.0.0"
+
+            afterEvaluate {
+                from(components["release"])
+            }
+        }
     }
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'com.google.android.material:material:1.5.0'
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-            // Creates a Maven publication called "release".
-            release(MavenPublication) {
-                from components.release
-                groupId = 'com.openreplay'
-                artifactId = 'openreplay'
-                version = '1.0'
-            }
-        }
-    }
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.9")
+    implementation("com.google.code.gson:gson:2.10.1")
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    implementation("org.apache.commons:commons-compress:1.26.1")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.23")
 }
